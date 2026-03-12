@@ -22,3 +22,6 @@ docker.env
 # Logs
 logs/
 *.log
+
+# Documentation
+doc.md
