@@ -3,5 +3,5 @@ title = "gitleaks config"
 [allowlist]
 description = "Ignore testing files and dummy credentials"
 paths = [
-    '''docker-compose\.yml'''
+    '''API-EXAMPLES\.md'''
 ]
