@@ -52,24 +52,24 @@ jobs:
             MicroServices/payment-service/target/*.jar
 
 
-#   # ─────────────────────────────────────────────
-#   # JOB 2 — GITLEAKS SCAN (Praveen)
-#   # Detects secrets / API keys in all commits
-#   # ─────────────────────────────────────────────
-#   gitleaks:
-#     needs: build
-#     runs-on: ubuntu-latest
-#     steps:
+  # ─────────────────────────────────────────────
+  # JOB 2 — GITLEAKS SCAN (Praveen)
+  # Detects secrets / API keys in all commits
+  # ─────────────────────────────────────────────
+  gitleaks:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
 
-#       - name: Checkout Code
-#         uses: actions/checkout@v3
-#         with:
-#           fetch-depth: 0
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-#       - name: Run GitLeaks
-#         uses: gitleaks/gitleaks-action@v2
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run GitLeaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
   # ─────────────────────────────────────────────
@@ -145,7 +145,7 @@ jobs:
   # Runs only after ALL three security jobs pass
   # ─────────────────────────────────────────────
   docker:
-    needs: [ build, sonarcloud ]  #gitleaks, sonarcloud, trivy-fs
+    needs: [ build, sonarcloud, gitleaks ]
     runs-on: ubuntu-latest
     steps:
 
@@ -174,20 +174,20 @@ jobs:
             -t ${{ secrets.DOCKER_USERNAME }}/payment-service:latest \
             ./MicroServices/payment-service
 
-    #   # Praveen's Trivy image scans — block push if CRITICAL CVEs found
-    #   - name: Trivy Scan — Order Service Image
-    #     uses: aquasecurity/trivy-action@master
-    #     with:
-    #       image-ref: ${{ secrets.DOCKER_USERNAME }}/order-service:latest
-    #       severity: 'CRITICAL,HIGH'
-    #       exit-code: '1'
+      # Praveen's Trivy image scans — block push if CRITICAL CVEs found
+      - name: Trivy Scan — Order Service Image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.DOCKER_USERNAME }}/order-service:latest
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
 
-    #   - name: Trivy Scan — Payment Service Image
-    #     uses: aquasecurity/trivy-action@master
-    #     with:
-    #       image-ref: ${{ secrets.DOCKER_USERNAME }}/payment-service:latest
-    #       severity: 'CRITICAL,HIGH'
-    #       exit-code: '1'
+      - name: Trivy Scan — Payment Service Image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.DOCKER_USERNAME }}/payment-service:latest
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
 
       - name: Push Order Service Image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/order-service:latest
