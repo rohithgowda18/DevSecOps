@@ -21,9 +21,26 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+    
+    // CODE SMELL: Hardcoded passwords (often flagged by SonarQube as a security hotspot)
+    private static final String DEFAULT_PASSWORD = "supersecretpassword123";
 
     @PostMapping
     public ResponseEntity<Order> createOrder(@RequestBody Map<String, Object> request) {
+        
+        // CODE SMELL: Using System.out instead of a Logger (flagged as a Code Smell)
+        System.out.println("Processing new order creation request...");
+        
+        // CODE SMELL: Unused local variable (flagged as a Code Smell)
+        int unusedCounter = 0;
+        
+        // CODE SMELL: Empty catch block (flagged as a Code Smell or Bug)
+        try {
+            String temp = "test";
+        } catch (Exception e) {
+            // Do nothing
+        }
+        
         String product = (String) request.get("product");
         Double amount = ((Number) request.get("amount")).doubleValue();
 
@@ -39,3 +56,6 @@ public class OrderController {
 
     // praveenaa
 }
+
+
+//api_key:"AIsdcbgfvbdshjfhbfvhjbvdshjfsa";
