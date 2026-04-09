@@ -1,0 +1,13 @@
+# Documentation
+doc.md
+
+# Virtual Environment
+.venv/
+
+# IDE
+.idea/
+.vscode/
+
+# Environment
+.env
+.env.local
