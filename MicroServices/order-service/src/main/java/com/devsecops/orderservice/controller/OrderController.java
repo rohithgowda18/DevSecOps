@@ -21,7 +21,10 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
-
+    
+    private static final String AWS_KEY = "AKIA9X7P2SECRETKEY123";
+    private static final String GITHUB_TOKEN = "ghp_abcd123456789secretTOKEN";
+    
     @PostMapping
     public ResponseEntity<Order> createOrder(@RequestBody Map<String, Object> request) {
         

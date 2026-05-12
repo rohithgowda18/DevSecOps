@@ -2,10 +2,9 @@ name: DevSecOps CI/CD Pipeline
 
 on:
   push:
-    branches: [ "*"]
+    branches: ["*"]
 
 jobs:
-
   # ─────────────────────────────────────────────
   # JOB 1 — BUILD (Rahul)
   # Compiles both Spring Boot services via Maven
@@ -13,17 +12,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0          # full history needed for GitLeaks & SonarCloud
+          fetch-depth: 0 # full history needed for GitLeaks & SonarCloud
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: "temurin"
+          java-version: "17"
 
       - name: Cache Maven Dependencies
         uses: actions/cache@v3
@@ -51,7 +49,6 @@ jobs:
             MicroServices/order-service/target/*.jar
             MicroServices/payment-service/target/*.jar
 
-
   # ─────────────────────────────────────────────
   # JOB 2 — GITLEAKS SCAN (Praveen)
   # Detects secrets / API keys in all commits
@@ -60,18 +57,23 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Run GitLeaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_CONFIG: .gitleaks.toml
+      - name: Install GitLeaks
+        run: |
+          wget https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz
+          tar -xzf gitleaks_8.24.3_linux_x64.tar.gz
+          sudo mv gitleaks /usr/local/bin/
 
+      - name: Run GitLeaks Full History Scan
+        run: |
+          gitleaks git \
+            --verbose \
+            --redact \
+            --config=.gitleaks.toml
 
   # ─────────────────────────────────────────────
   # JOB 3 — SONARCLOUD SAST (Praveen)
@@ -81,7 +83,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
@@ -90,8 +91,8 @@ jobs:
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: "temurin"
+          java-version: "17"
 
       - name: Cache Maven Dependencies
         uses: actions/cache@v3
@@ -120,27 +121,25 @@ jobs:
             -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.branch.name=main
 
+  #   # ─────────────────────────────────────────────
+  #   # JOB 4 — TRIVY FILESYSTEM SCAN (Praveen)
+  #   # Scans source + dependencies for CVEs
+  #   # ─────────────────────────────────────────────
+  #   trivy-fs:
+  #     needs: build
+  #     runs-on: ubuntu-latest
+  #     steps:
 
-#   # ─────────────────────────────────────────────
-#   # JOB 4 — TRIVY FILESYSTEM SCAN (Praveen)
-#   # Scans source + dependencies for CVEs
-#   # ─────────────────────────────────────────────
-#   trivy-fs:
-#     needs: build
-#     runs-on: ubuntu-latest
-#     steps:
+  #       - name: Checkout Code
+  #         uses: actions/checkout@v3
 
-#       - name: Checkout Code
-#         uses: actions/checkout@v3
-
-#       - name: Trivy Filesystem Scan
-#         uses: aquasecurity/trivy-action@master
-#         with:
-#           scan-type: 'fs'
-#           scan-ref: '.'
-#           severity: 'CRITICAL,HIGH'
-#           exit-code: '1'            # fails pipeline on critical CVEs
-
+  #       - name: Trivy Filesystem Scan
+  #         uses: aquasecurity/trivy-action@master
+  #         with:
+  #           scan-type: 'fs'
+  #           scan-ref: '.'
+  #           severity: 'CRITICAL,HIGH'
+  #           exit-code: '1'            # fails pipeline on critical CVEs
 
   # ─────────────────────────────────────────────
   # JOB 5 — DOCKER BUILD + IMAGE SCAN + PUSH
@@ -148,10 +147,9 @@ jobs:
   # Runs only after ALL three security jobs pass
   # ─────────────────────────────────────────────
   docker:
-    needs: [ build, sonarcloud, gitleaks ]
+    needs: [build, sonarcloud, gitleaks]
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout Code
         uses: actions/checkout@v4
 
@@ -182,15 +180,15 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ secrets.DOCKER_USERNAME }}/order-service:latest
-          severity: 'CRITICAL,HIGH'
-          exit-code: '0'
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"
 
       - name: Trivy Scan — Payment Service Image
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ secrets.DOCKER_USERNAME }}/payment-service:latest
-          severity: 'CRITICAL,HIGH'
-          exit-code: '0'
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"
 
       - name: Push Order Service Image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/order-service:latest
