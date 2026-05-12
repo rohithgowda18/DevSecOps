@@ -1,5 +1,6 @@
 # Documentation
-doc.md
+*.md
+!README.md
 
 # Virtual Environment
 .venv/

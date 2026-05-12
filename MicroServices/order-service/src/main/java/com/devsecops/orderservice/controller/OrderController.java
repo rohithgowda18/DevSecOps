@@ -23,7 +23,10 @@ public class OrderController {
     private OrderService orderService;
     
     // CODE SMELL: Hardcoded passwords (often flagged by SonarQube as a security hotspot)
-    private static final String DEFAULT_PASSWORD = "supersecretpassword123";
+    private static final String DEFAULT_PASSWORD = "supersecretpassword12345";
+    
+    // This WILL be caught by gitleaks (AWS key pattern)
+    private static final String AWS_KEY = "AKIAIOSFODNN7EXAMPLE";
 
     @PostMapping
     public ResponseEntity<Order> createOrder(@RequestBody Map<String, Object> request) {

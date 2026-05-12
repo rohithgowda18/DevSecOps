@@ -24,4 +24,5 @@ logs/
 *.log
 
 # Documentation
-doc.md
+*.md
+!README.md
